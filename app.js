@@ -48,6 +48,67 @@ app.use(express.static(__dirname + '/public'))
    .use(cors())
    .use(cookieParser());
 
+
+
+
+app.use(
+    express.raw({
+        // Need raw message body for siganture verification -> this might from the Twitch API
+        type: "application/json",
+    })
+);
+const expressWs = require("express-ws")(app); // require express-websocket and initialize expressWs
+let port = 3000; // we use port 3000 for the websocket connection (should we put this into an environment variable?)
+let LEDData = { // the JSON file that is being send via websocket. Filled with random data for now. This needs to be exchanged with actual data from the database
+    "queue": {
+        "1": {
+            "r": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2),
+            "g": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2),
+            "b": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2)
+        },
+        "2": {
+            "r": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2),
+            "g": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2),
+            "b": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2)
+        },
+        "3": {
+            "r": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2),
+            "g": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2),
+            "b": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2)
+        },
+        "4": {
+            "r": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2),
+            "g": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2),
+            "b": Math.floor(Math.random() * 256) * Math.floor(Math.random() * 2)
+        }
+    },
+    "clients": {
+        "1": Math.floor(Math.random() * 2),
+        "2": Math.floor(Math.random() * 2),
+        "3": Math.floor(Math.random() * 2),
+        "4": Math.floor(Math.random() * 2)
+    }
+}
+app.ws("/", function(ws, req) {
+    console.log("new client connected to websocket");
+    ws.on('message', function(msg) {
+        if(msg === 'Ping') {
+            ws.send('Pong');
+        } else {
+            ws.send('Received unknown message');
+        }
+    });
+});
+var wss = expressWs.getWss("/");
+/*
+wss.clients.forEach(client => client.send(JSON.stringify(LEDData, null, 4)));
+*/
+
+
+
+
+
+
 //Authorization flow for the Spotify API 
 app.get('/login', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
